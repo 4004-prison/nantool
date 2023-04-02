@@ -3,10 +3,11 @@ package ipv4util
 import (
 	"errors"
 	"fmt"
-	"nantool/core/convert"
 	"net"
 	"strconv"
 	"strings"
+
+	"github.com/4004-prison/nantool/core/convert"
 )
 
 const (

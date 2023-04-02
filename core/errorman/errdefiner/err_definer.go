@@ -2,8 +2,10 @@ package errdefiner
 
 import (
 	"fmt"
-	"nantool/core/errorman"
 	"strings"
+
+	"github.com/4004-prison/nantool/core/errorman"
+
 )
 
 // NOTE: create only one errorDefiner within an application on initialize
