@@ -29,7 +29,7 @@ type Config struct {
 	User     string `yaml:"user"`
 	Password string `yaml:"password"`
 
-	MaxIdelConns int `yaml:"maxIdelConns"`
+	MaxIdleConns int `yaml:"maxIdleConns"`
 	MaxOpenConns int `yaml:"maxOpenConns"`
 
 	dsn string
@@ -61,7 +61,7 @@ func New(config *Config) (*gorm.DB, error) {
 		return nil, err
 	}
 
-	sqlDB.SetMaxIdleConns(config.MaxIdelConns)
+	sqlDB.SetMaxIdleConns(config.MaxIdleConns)
 
 	if config.MaxOpenConns == 0 {
 		config.MaxOpenConns = defaultMaxOpenConns
@@ -83,8 +83,8 @@ func (c *Config) fill() error {
 	if c.Port == "" {
 		c.Port = defaultPort
 	}
-	if c.MaxIdelConns == 0 {
-		c.MaxIdelConns = defaultMaxIdelConns
+	if c.MaxIdleConns == 0 {
+		c.MaxIdleConns = defaultMaxIdelConns
 	}
 	if c.MaxOpenConns == 0 {
 		c.MaxOpenConns = defaultMaxOpenConns
