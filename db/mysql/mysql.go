@@ -3,6 +3,7 @@ package mysql
 import (
 	"errors"
 	"fmt"
+	"sync"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -20,6 +21,7 @@ const (
 )
 
 var db *gorm.DB
+var mu sync.Mutex
 
 // Config mysql db configuration
 type Config struct {
@@ -37,36 +39,39 @@ type Config struct {
 
 // New return a gorm db. it's a singleton.
 func New(config *Config) (*gorm.DB, error) {
-	if db != nil {
-		return db, nil
-	}
-	err := config.fill()
-	if err != nil {
-		return nil, err
-	}
-	db, err = gorm.Open(
-		mysql.New(mysql.Config{
-			DSN:                       config.dsn,
-			DefaultStringSize:         256,
-			DisableDatetimePrecision:  true,
-			DontSupportRenameIndex:    true,
-			DontSupportRenameColumn:   true,
-			SkipInitializeWithVersion: false,
-		}))
-	if err != nil {
-		return nil, err
-	}
-	sqlDB, err := db.DB()
-	if err != nil {
-		return nil, err
-	}
+	if db == nil {
+		mu.Lock()
+		defer mu.Unlock()
+		if db == nil {
+			err := config.fill()
+			if err != nil {
+				return nil, err
+			}
+			db, err = gorm.Open(
+				mysql.New(mysql.Config{
+					DSN:                       config.dsn,
+					DefaultStringSize:         256,
+					DisableDatetimePrecision:  true,
+					DontSupportRenameIndex:    true,
+					DontSupportRenameColumn:   true,
+					SkipInitializeWithVersion: false,
+				}))
+			if err != nil {
+				return nil, err
+			}
+			sqlDB, err := db.DB()
+			if err != nil {
+				return nil, err
+			}
 
-	sqlDB.SetMaxIdleConns(config.MaxIdleConns)
+			sqlDB.SetMaxIdleConns(config.MaxIdleConns)
 
-	if config.MaxOpenConns == 0 {
-		config.MaxOpenConns = defaultMaxOpenConns
+			if config.MaxOpenConns == 0 {
+				config.MaxOpenConns = defaultMaxOpenConns
+			}
+			sqlDB.SetMaxOpenConns(defaultMaxOpenConns)
+		}
 	}
-	sqlDB.SetMaxOpenConns(defaultMaxOpenConns)
 	return db, nil
 }
 
